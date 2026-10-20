@@ -1,0 +1,8 @@
+[build]
+  command = "npm run build"
+  publish = "out"
+
+# This app uses `output: 'export'` in next.config.js, producing a fully
+# static site in /out with no serverless functions, no API routes and no
+# environment variables. Netlify just serves the static files directly —
+# no @netlify/plugin-nextjs needed.
