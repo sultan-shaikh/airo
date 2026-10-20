@@ -1,5 +1,4 @@
-import { FrameworkMeta } from './types'
-
+import { FrameworkMeta, FrameworkSlug } from './types'
 // Metadata for all 13 modules the applicability engine can produce a
 // verdict for. `certifiable: true` marks the frameworks where an
 // independent third-party audit is required to actually hold a
