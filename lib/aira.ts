@@ -10,6 +10,7 @@
 import { ApplicabilityResult, Control, Verdict } from './types'
 import { getFrameworkMeta } from './frameworks-meta'
 import { AiRiskCategory, AiRiskFinding, AiRiskSeverity, AiTool } from './ai-inventory-types'
+import { IntegrationFinding } from './demo-control-mapping'
 
 const VERDICT_OPENERS: Record<Verdict, string> = {
   mandatory_legal:
@@ -117,6 +118,28 @@ export function explainAiRisk(finding: AiRiskFinding, tool: AiTool): string {
     `Why: ${finding.reason}`,
     `What triggered it: ${finding.triggeredBy.join(', ')}.`,
     'This finding came from AIro’s deterministic AI risk rules, not a live AI judgement — I’m only here to explain it in plain English.',
+    '⚖️ Guidance note: this is guidance to help you understand your risk exposure — it is not legal advice. For complex situations, please speak with a qualified solicitor or regulatory specialist.',
+  ].join(' ')
+}
+
+/**
+ * AIra's plain-English explanation of a synthetic integration finding
+ * (lib/demo-control-mapping.ts), for the demo workspace path only. Like
+ * explainVerdict/explainControl/explainAiRisk above, this only explains
+ * data that was already deterministically produced elsewhere — AIra never
+ * invents or adjusts the finding itself.
+ */
+export function explainIntegrationFinding(finding: IntegrationFinding): string {
+  const opener =
+    finding.severity === 'high'
+      ? 'This is a high-severity finding — it’s worth prioritising fairly soon.'
+      : 'This is a medium-severity finding — worth scheduling into your next review cycle.'
+
+  return [
+    `Let's talk about "${finding.title}".`,
+    opener,
+    finding.reason,
+    'This came from AIro’s simulated integration sync, not a live AI judgement — I’m only here to explain it in plain English.',
     '⚖️ Guidance note: this is guidance to help you understand your risk exposure — it is not legal advice. For complex situations, please speak with a qualified solicitor or regulatory specialist.',
   ].join(' ')
 }

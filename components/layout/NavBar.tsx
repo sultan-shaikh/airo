@@ -14,6 +14,7 @@ const LINKS = [
 export default function NavBar() {
   const pathname = usePathname()
   const profile = useAppStore((s) => s.profile)
+  const activeIntegration = useAppStore((s) => s.activeIntegration)
 
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-white/90 backdrop-blur">
@@ -75,8 +76,13 @@ export default function NavBar() {
             <span className="truncate uppercase tracking-wide">
               {profile.companyName || 'Unnamed company'}
             </span>
-            <span className="truncate uppercase tracking-wide">
+            <span className="flex items-center gap-2 truncate uppercase tracking-wide">
               {profile.sector.replace(/_/g, ' ')} · {profile.headcountBand} employees
+              {activeIntegration && (
+                <span className="inline-flex items-center rounded-pill bg-surface-tertiary px-2 py-0.5 text-micro font-medium normal-case tracking-normal text-text-muted">
+                  Demo Mode
+                </span>
+              )}
             </span>
           </div>
         </div>

@@ -110,6 +110,42 @@ export function ChevronIcon({ className, open }: IconProps & { open?: boolean })
   )
 }
 
+export function PlugIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.6">
+      <path d="M9 2.5v4M15 2.5v4" strokeLinecap="round" />
+      <path d="M6.5 6.5h11v4a5.5 5.5 0 01-11 0v-4z" strokeLinejoin="round" />
+      <path d="M12 16v3.5" strokeLinecap="round" />
+      <path d="M9 19.5h6" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+export function SyncIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.6">
+      <path d="M4.5 12a7.5 7.5 0 0113-5" strokeLinecap="round" />
+      <path d="M17.5 3.8V7h-3.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M19.5 12a7.5 7.5 0 01-13 5" strokeLinecap="round" />
+      <path d="M6.5 20.2V17h3.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+/** Neutral, original abstract mark used to represent "a connected identity
+ * provider" on the demo /connect screen and IntegrationsPanel — deliberately
+ * NOT a reproduction of any real vendor's logo. */
+export function SsoProviderMark({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <rect x="2" y="2" width="9" height="9" rx="1.5" fill="currentColor" opacity="0.85" />
+      <rect x="13" y="2" width="9" height="9" rx="1.5" fill="currentColor" opacity="0.55" />
+      <rect x="2" y="13" width="9" height="9" rx="1.5" fill="currentColor" opacity="0.55" />
+      <rect x="13" y="13" width="9" height="9" rx="1.5" fill="currentColor" opacity="0.3" />
+    </svg>
+  )
+}
+
 export function PaperclipIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.6">

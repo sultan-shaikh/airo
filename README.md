@@ -79,6 +79,38 @@ here is the honest MVP version of "monitoring": you tell AIro what you use, it
 scores the risk and tracks whether you've done anything about it, and you (or a
 scheduled reminder outside this app) decide when to come back and re-check.
 
+## Simulated demo workspace path (`/login` → `/connect` → `/dashboard`)
+
+For sales/VP demos, there's a second entry point alongside the real profile wizard:
+`/login` lets you pick one of five fictional UK SMB personas (`lib/demo-tenants.ts`),
+then `/connect` shows a consent screen styled like a real Microsoft/Google OAuth
+"Accept access" screen, then you land on a fully populated `/dashboard`.
+
+**This is explicitly NOT real OAuth.** There is no handshake, no redirect to an
+actual identity provider, no token, and no credential of any kind is requested,
+created or stored. `/connect`'s "Accept" button runs a client-side `setTimeout`
+sequence for visual effect, then calls `useAppStore.seedFromDemoTenant()`, which
+writes the chosen persona's pre-built `Profile` and a set of `ControlState`s derived
+from a static `IntegrationFixture` object into the same IndexedDB store the real app
+already uses — no new storage mechanism, no network call, same architecture as
+everywhere else in this codebase. The "logo" on the consent screen is an original,
+generic abstract mark (`SsoProviderMark` in `components/icons.tsx`), not a
+reproduction of Microsoft's or Google's actual logo.
+
+Because this could otherwise be mistaken for a live customer's real connected
+environment, a small **"Demo Mode — simulated data"** pill is shown on the consent
+screen, in the dashboard's integrations panel, and next to the company name in the
+nav bar whenever a demo workspace is active — this should never be removed or hidden
+when the app is shown to anyone outside the company without that disclosure being
+clearly visible.
+
+**If this becomes the real product**, real OAuth would need to be built to replace
+this path entirely: Microsoft Graph (delegated admin consent, `Policy.Read.All`,
+`Device.Read.All`, `RoleManagement.Read.Directory` or similar scopes) for Microsoft
+365, and the Google Admin SDK (Reports API / Directory API with a domain-wide
+delegated service account) for Google Workspace — both requiring a backend to hold
+and refresh tokens server-side, which this client-side build does not have.
+
 ## "Guidance, not certification"
 
 AIro is explicit, in the UI and in the generated PDF, that it provides guidance to
@@ -120,9 +152,12 @@ needed on Netlify.
 - `lib/aira.ts` — AIra's static, template-driven explanatory text.
 - `lib/ai-inventory-types.ts` / `lib/ai-risk-engine.ts` — AI Discovery & Monitoring
   types and the deterministic risk-scoring rules engine (see above).
+- `lib/demo-tenants.ts` / `lib/demo-control-mapping.ts` — fixture data and mapping
+  logic for the simulated demo-workspace path (see above). Not used by the real
+  profile wizard flow.
 - `store/useAppStore.ts` — Zustand store wiring the above together with persistence.
 - `app/` — Next.js App Router pages (landing, profile wizard, dashboard, per-framework
-  workspace, AI Discovery & Monitoring workspace, report).
+  workspace, AI Discovery & Monitoring workspace, report, demo `login`/`connect`).
 - `components/` — UI components grouped by feature area.
 
 ## Known limitations / follow-ups

@@ -17,6 +17,8 @@ import {
   ControlStatus,
   Profile,
 } from '@/lib/types'
+import { applyIntegrationFixture } from '@/lib/demo-control-mapping'
+import { DemoTenant, IntegrationFixture } from '@/lib/demo-tenants'
 
 interface AppState {
   hydrated: boolean
@@ -26,9 +28,14 @@ interface AppState {
   aiTools: Record<string, AiTool>
   aiRiskFindings: Record<string, AiRiskFinding>
   aiMitigations: Record<string, AiMitigation>
+  /** Set only when the current session came through the simulated
+   * demo-workspace path (/login → /connect). Null for the real profile
+   * wizard flow. See lib/demo-tenants.ts. */
+  activeIntegration: { tenantId: string; fixture: IntegrationFixture } | null
 
   hydrate: () => Promise<void>
   submitProfile: (profile: Profile) => Promise<void>
+  seedFromDemoTenant: (tenant: DemoTenant) => Promise<void>
   setControlStatus: (controlId: string, status: ControlStatus) => Promise<void>
   setControlNotes: (controlId: string, notes: string) => Promise<void>
   addEvidenceFileId: (controlId: string, fileId: string) => Promise<void>
@@ -60,17 +67,19 @@ export const useAppStore = create<AppState>((set, get) => ({
   aiTools: {},
   aiRiskFindings: {},
   aiMitigations: {},
+  activeIntegration: null,
 
   hydrate: async () => {
     if (get().hydrated) return
     try {
-      const [profile, applicability, states, aiToolsList, aiFindingsList, aiMitigationsList] = await Promise.all([
+      const [profile, applicability, states, aiToolsList, aiFindingsList, aiMitigationsList, demoIntegration] = await Promise.all([
         db.getProfile(),
         db.getApplicability(),
         db.getAllControlStates(),
         db.getAllAiTools(),
         db.getAllAiRiskFindings(),
         db.getAllAiMitigations(),
+        db.getDemoIntegration(),
       ])
       const controlStates: Record<string, ControlState> = {}
       for (const s of states) {
@@ -95,6 +104,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         aiTools,
         aiRiskFindings,
         aiMitigations,
+        activeIntegration: demoIntegration
+          ? { tenantId: demoIntegration.tenantId, fixture: demoIntegration.fixture }
+          : null,
         hydrated: true,
       })
     } catch (err) {
@@ -110,6 +122,30 @@ export const useAppStore = create<AppState>((set, get) => ({
     await db.saveProfile(profile)
     await db.saveApplicability(applicability)
     set({ profile, applicability })
+  },
+
+  seedFromDemoTenant: async (tenant) => {
+    // Seeds the store + IndexedDB with a demo persona's Profile, the
+    // decision-tree-evaluated applicability for it, and the control states
+    // derived from its (fixture, not live) integration data. This is the
+    // only place a DemoTenant touches persistence — the fake /connect
+    // consent screen calls this on "Accept", nothing else does.
+    const applicability = evaluateApplicability(tenant.profile)
+    const integrationStates = applyIntegrationFixture(tenant.integration)
+
+    await db.saveProfile(tenant.profile)
+    await db.saveApplicability(applicability)
+    await db.saveDemoIntegration({ tenantId: tenant.id, fixture: tenant.integration })
+    for (const state of Object.values(integrationStates)) {
+      if (state) await db.saveControlState(state)
+    }
+
+    set((state) => ({
+      profile: tenant.profile,
+      applicability,
+      controlStates: { ...state.controlStates, ...integrationStates },
+      activeIntegration: { tenantId: tenant.id, fixture: tenant.integration },
+    }))
   },
 
   setControlStatus: async (controlId, status) => {
@@ -299,6 +335,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       aiTools: {},
       aiRiskFindings: {},
       aiMitigations: {},
+      activeIntegration: null,
     })
   },
 }))

@@ -6,9 +6,10 @@
 import { v4 as uuidv4 } from 'uuid'
 import { ApplicabilityResult, ControlState, EvidenceFile, Profile } from './types'
 import { AiMitigation, AiRiskFinding, AiTool } from './ai-inventory-types'
+import { IntegrationFixture } from './demo-tenants'
 
 const DB_NAME = 'airo-compliance'
-const DB_VERSION = 2
+const DB_VERSION = 3
 
 const STORE_PROFILE = 'profile'
 const STORE_APPLICABILITY = 'applicability'
@@ -17,9 +18,18 @@ const STORE_EVIDENCE_FILES = 'evidenceFiles'
 const STORE_AI_TOOLS = 'aiTools'
 const STORE_AI_RISK_FINDINGS = 'aiRiskFindings'
 const STORE_AI_MITIGATIONS = 'aiMitigations'
+const STORE_DEMO_INTEGRATION = 'demoIntegration'
 
 const PROFILE_KEY = 'current'
 const APPLICABILITY_KEY = 'current'
+const DEMO_INTEGRATION_KEY = 'current'
+
+/** The demo workspace's active integration, if any. Stored separately from
+ * Profile so the real (non-demo) profile wizard path never touches it. */
+export interface DemoIntegrationRecord {
+  tenantId: string
+  fixture: IntegrationFixture
+}
 
 function isBrowser(): boolean {
   return typeof window !== 'undefined' && typeof window.indexedDB !== 'undefined'
@@ -63,6 +73,11 @@ export function initDB(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(STORE_AI_MITIGATIONS)) {
         const store = db.createObjectStore(STORE_AI_MITIGATIONS, { keyPath: 'id' })
         store.createIndex('byFindingId', 'findingId', { unique: false })
+      }
+      // v3 — the demo workspace's active integration record (see
+      // lib/demo-tenants.ts). Guarded the same way as earlier stores.
+      if (!db.objectStoreNames.contains(STORE_DEMO_INTEGRATION)) {
+        db.createObjectStore(STORE_DEMO_INTEGRATION)
       }
     }
 
@@ -251,6 +266,24 @@ export async function deleteAiMitigationsForFinding(findingId: string): Promise<
   })
 }
 
+// ---- Demo integration (simulated, see lib/demo-tenants.ts) ---------------
+
+export async function saveDemoIntegration(record: DemoIntegrationRecord): Promise<void> {
+  await withStore(STORE_DEMO_INTEGRATION, 'readwrite', (store) =>
+    store.put(record, DEMO_INTEGRATION_KEY),
+  )
+}
+
+export async function getDemoIntegration(): Promise<DemoIntegrationRecord | undefined> {
+  return withStore<DemoIntegrationRecord | undefined>(STORE_DEMO_INTEGRATION, 'readonly', (store) =>
+    store.get(DEMO_INTEGRATION_KEY),
+  )
+}
+
+export async function clearDemoIntegration(): Promise<void> {
+  await withStore(STORE_DEMO_INTEGRATION, 'readwrite', (store) => store.delete(DEMO_INTEGRATION_KEY))
+}
+
 // ---- Bulk reset ------------------------------------------------------------
 
 export async function clearAll(): Promise<void> {
@@ -263,6 +296,7 @@ export async function clearAll(): Promise<void> {
     STORE_AI_TOOLS,
     STORE_AI_RISK_FINDINGS,
     STORE_AI_MITIGATIONS,
+    STORE_DEMO_INTEGRATION,
   ]
   await Promise.all(
     storeNames.map(

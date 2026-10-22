@@ -13,6 +13,7 @@ import ProgressStats from '@/components/layout/ProgressStats'
 import AiraNote from '@/components/aira/AiraNote'
 import { getFrameworkMeta } from '@/lib/frameworks-meta'
 import { RobotIcon } from '@/components/icons'
+import IntegrationsPanel from '@/components/dashboard/IntegrationsPanel'
 
 const CATEGORY_LABELS: Record<FrameworkCategory, string> = {
   cyber_security: 'Cyber Security',
@@ -32,6 +33,7 @@ export default function DashboardPage() {
   const aiTools = useAppStore((s) => s.aiTools)
   const aiRiskFindings = useAppStore((s) => s.aiRiskFindings)
   const aiMitigations = useAppStore((s) => s.aiMitigations)
+  const activeIntegration = useAppStore((s) => s.activeIntegration)
   const hydrate = useAppStore((s) => s.hydrate)
 
   useEffect(() => {
@@ -105,6 +107,8 @@ export default function DashboardPage() {
           Go to report
         </Link>
       </div>
+
+      {activeIntegration && <IntegrationsPanel fixture={activeIntegration.fixture} />}
 
       {/* Readiness hero: gauge + radar */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">

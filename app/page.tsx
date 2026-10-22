@@ -58,6 +58,14 @@ export default function LandingPage() {
               View dashboard
             </Link>
           </div>
+          <div className="pt-1">
+            <Link
+              href="/login"
+              className="text-caption font-medium text-brand-teal underline-offset-2 hover:underline"
+            >
+              View live demo workspaces →
+            </Link>
+          </div>
           <div className="flex items-center justify-center gap-2 pt-1 text-caption text-text-muted">
             <LockIcon className="h-4 w-4" />
             Nothing leaves your browser — data stored locally via IndexedDB.
