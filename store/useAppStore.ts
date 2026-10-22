@@ -140,10 +140,18 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (state) await db.saveControlState(state)
     }
 
+    // applyIntegrationFixture returns Partial<Record<string, ControlState>>,
+    // so spreading it directly would carry `| undefined` into the merged
+    // controlStates map's values — filter those out before merging.
+    const definedIntegrationStates: Record<string, ControlState> = {}
+    for (const [id, controlState] of Object.entries(integrationStates)) {
+      if (controlState) definedIntegrationStates[id] = controlState
+    }
+
     set((state) => ({
       profile: tenant.profile,
       applicability,
-      controlStates: { ...state.controlStates, ...integrationStates },
+      controlStates: { ...state.controlStates, ...definedIntegrationStates },
       activeIntegration: { tenantId: tenant.id, fixture: tenant.integration },
     }))
   },
