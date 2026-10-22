@@ -10,6 +10,7 @@ import ToolForm, { ToolFormValues } from '@/components/ai-monitor/ToolForm'
 import SeverityBadge from '@/components/ai-monitor/SeverityBadge'
 import MitigationStatusSelector from '@/components/ai-monitor/MitigationStatusSelector'
 import AiraNote from '@/components/aira/AiraNote'
+import { RobotIcon } from '@/components/icons'
 
 const SEVERITY_ORDER: AiRiskSeverity[] = ['critical', 'high', 'medium', 'low']
 
@@ -96,12 +97,17 @@ export default function AiMonitorWorkspace() {
         &larr; Back to dashboard
       </Link>
 
-      <div>
-        <h1 className="text-2xl font-semibold text-text-primary">AI Discovery &amp; Monitoring</h1>
-        <p className="mt-1 text-sm text-text-secondary">
-          A self-reported inventory of the AI tools your business actually uses, scored for risk, with
-          mitigations tracked and a re-check workflow to keep it current.
-        </p>
+      <div className="flex items-center gap-3">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-button bg-brand-teal-light text-brand-teal">
+          <RobotIcon className="h-6 w-6" />
+        </span>
+        <div>
+          <h1 className="text-h1 text-text-primary">AI Discovery &amp; Monitoring</h1>
+          <p className="mt-1 text-body text-text-secondary">
+            A self-reported inventory of the AI tools your business actually uses, scored for risk, with
+            mitigations tracked and a re-check workflow to keep it current.
+          </p>
+        </div>
       </div>
 
       <AiraNote
@@ -203,10 +209,7 @@ export default function AiMonitorWorkspace() {
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-text-primary">Mitigations</h2>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <BeforeAfterCard title="Before mitigation" counts={beforeCounts} />
-          <BeforeAfterCard title="Residual (current)" counts={afterCounts} highlight />
-        </div>
+        <ResidualRiskPanel before={beforeCounts} after={afterCounts} />
 
         {findings.length === 0 ? (
           <p className="text-sm text-text-secondary">No findings to mitigate yet.</p>
@@ -335,29 +338,72 @@ const DEPLOYMENT_LABEL: Record<AiTool['deploymentType'], string> = {
   browser_extension: 'Browser extension',
 }
 
-function BeforeAfterCard({
-  title,
-  counts,
-  highlight,
-}: {
-  title: string
-  counts: Record<AiRiskSeverity, number>
-  highlight?: boolean
-}) {
-  const total = counts.low + counts.medium + counts.high + counts.critical
+const SEVERITY_BAR_COLOR: Record<AiRiskSeverity, string> = {
+  critical: 'bg-status-critical',
+  high: 'bg-status-high',
+  medium: 'bg-status-moderate',
+  low: 'bg-status-low',
+}
+
+function RiskBars({ counts, maxTotal }: { counts: Record<AiRiskSeverity, number>; maxTotal: number }) {
   return (
-    <div
-      className={
-        highlight
-          ? 'rounded-card border border-brand-teal bg-brand-teal-light p-4'
-          : 'rounded-card border border-border bg-white p-4 shadow-card'
-      }
-    >
-      <p className="text-sm font-semibold text-text-primary">{title}</p>
-      <p className="mt-1 text-2xl font-semibold text-brand-navy">{total}</p>
-      <p className="mt-1 text-xs text-text-secondary">
-        {SEVERITY_ORDER.map((s) => `${counts[s]} ${s}`).join(' · ')}
-      </p>
+    <div className="space-y-1.5">
+      {SEVERITY_ORDER.map((s) => (
+        <div key={s} className="flex items-center gap-2">
+          <span className="w-16 shrink-0 text-micro uppercase tracking-wide text-text-muted">{s}</span>
+          <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-tertiary">
+            <div
+              className={`h-full rounded-full ${SEVERITY_BAR_COLOR[s]} transition-all`}
+              style={{ width: maxTotal > 0 ? `${(counts[s] / maxTotal) * 100}%` : '0%' }}
+            />
+          </div>
+          <span className="w-5 shrink-0 text-right text-caption font-medium text-text-secondary">
+            {counts[s]}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ResidualRiskPanel({
+  before,
+  after,
+}: {
+  before: Record<AiRiskSeverity, number>
+  after: Record<AiRiskSeverity, number>
+}) {
+  const beforeTotal = SEVERITY_ORDER.reduce((sum, s) => sum + before[s], 0)
+  const afterTotal = SEVERITY_ORDER.reduce((sum, s) => sum + after[s], 0)
+  const maxTotal = Math.max(beforeTotal, afterTotal, 1)
+  const reduced = beforeTotal - afterTotal
+
+  return (
+    <div className="overflow-hidden rounded-card border border-border bg-white shadow-card">
+      <div className="grid grid-cols-1 divide-y divide-border sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+        <div className="p-5">
+          <p className="text-caption font-semibold uppercase tracking-wide text-text-muted">
+            Before mitigation
+          </p>
+          <p className="mt-1 text-h1 text-text-primary">{beforeTotal}</p>
+          <p className="text-micro text-text-muted">open findings</p>
+          <div className="mt-4">
+            <RiskBars counts={before} maxTotal={maxTotal} />
+          </div>
+        </div>
+        <div className="bg-brand-teal-light p-5">
+          <p className="text-caption font-semibold uppercase tracking-wide text-brand-teal">
+            Residual (current)
+          </p>
+          <p className="mt-1 text-h1 text-brand-navy">{afterTotal}</p>
+          <p className="text-micro text-text-secondary">
+            {reduced > 0 ? `${reduced} resolved by mitigations` : 'no findings resolved yet'}
+          </p>
+          <div className="mt-4">
+            <RiskBars counts={after} maxTotal={maxTotal} />
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

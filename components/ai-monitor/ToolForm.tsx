@@ -73,7 +73,28 @@ export default function ToolForm({ initial, onSubmit, onCancel }: ToolFormProps)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-card border border-border bg-white p-4 shadow-card">
+    <div className="fixed inset-0 z-30 flex justify-end">
+      <div
+        className="absolute inset-0 bg-text-primary/30 backdrop-blur-sm"
+        onClick={onCancel}
+        aria-hidden="true"
+      />
+      <form
+        onSubmit={handleSubmit}
+        className="relative flex h-full w-full max-w-md flex-col gap-4 overflow-y-auto border-l border-border bg-white p-6 shadow-lg"
+      >
+        <div className="flex items-center justify-between">
+          <h3 className="text-h2 text-text-primary">{initial ? 'Edit AI tool' : 'Add AI tool'}</h3>
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="rounded-button px-2 py-1 text-sm text-text-muted hover:bg-surface-tertiary hover:text-text-primary"
+            >
+              ✕
+            </button>
+          )}
+        </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <label className="text-xs font-semibold uppercase tracking-wide text-text-muted">Tool name</label>
@@ -154,7 +175,8 @@ export default function ToolForm({ initial, onSubmit, onCancel }: ToolFormProps)
             Cancel
           </button>
         )}
-      </div>
-    </form>
+        </div>
+      </form>
+    </div>
   )
 }

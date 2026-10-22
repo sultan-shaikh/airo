@@ -11,6 +11,7 @@ import { explainVerdict } from '@/lib/aira'
 import ControlList from '@/components/frameworks/ControlList'
 import AiraNote from '@/components/aira/AiraNote'
 import VerdictBadge from '@/components/dashboard/VerdictBadge'
+import ReadinessGauge from '@/components/dashboard/ReadinessGauge'
 
 const VALID_SLUGS = new Set(FRAMEWORKS_META.map((m) => m.slug))
 
@@ -44,6 +45,8 @@ export default function FrameworkWorkspace({ slug }: { slug: string }) {
   const meta = getFrameworkMeta(frameworkSlug)
   const result = applicability.find((a) => a.slug === frameworkSlug)
   const controls = getControlsForFramework(frameworkSlug)
+  const implemented = controls.filter((c) => controlStates[c.id]?.status === 'implemented').length
+  const frameworkPct = controls.length > 0 ? Math.round((implemented / controls.length) * 100) : 0
 
   return (
     <div className="space-y-6">
@@ -51,13 +54,23 @@ export default function FrameworkWorkspace({ slug }: { slug: string }) {
         &larr; Back to dashboard
       </Link>
 
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-text-primary">{meta.name}</h1>
-          <p className="mt-1 text-sm text-text-secondary">{meta.description}</p>
-          <p className="mt-1 text-xs text-text-muted">Source: {meta.officialSourceName}</p>
+      <div className="flex flex-wrap items-start justify-between gap-5 rounded-card border border-border bg-white p-5 shadow-card">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-h1 text-text-primary">{meta.name}</h1>
+            {result && <VerdictBadge verdict={result.verdict} />}
+          </div>
+          <p className="mt-1 text-body text-text-secondary">{meta.description}</p>
+          <p className="mt-1 text-caption text-text-muted">Source: {meta.officialSourceName}</p>
         </div>
-        {result && <VerdictBadge verdict={result.verdict} />}
+        {controls.length > 0 && (
+          <div className="flex flex-col items-center gap-1">
+            <ReadinessGauge percent={frameworkPct} size={88} />
+            <p className="text-micro text-text-muted">
+              {implemented}/{controls.length} implemented
+            </p>
+          </div>
+        )}
       </div>
 
       {meta.certifiable && (

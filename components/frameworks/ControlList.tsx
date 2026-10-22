@@ -16,11 +16,21 @@ export default function ControlList({ controls, controlStates, frameworkSlug }: 
     <div className="space-y-8">
       {domains.map((domain) => {
         const domainControls = controls.filter((c) => c.domain === domain)
+        const implemented = domainControls.filter(
+          (c) => controlStates[c.id]?.status === 'implemented',
+        ).length
+
         return (
           <div key={domain}>
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text-muted">
-              {domain}
-            </h3>
+            <div className="mb-3 flex items-center gap-3">
+              <h3 className="text-caption font-semibold uppercase tracking-wide text-text-muted">
+                {domain}
+              </h3>
+              <div className="h-px flex-1 bg-border" />
+              <span className="shrink-0 text-caption font-medium text-text-secondary">
+                {implemented} of {domainControls.length} implemented
+              </span>
+            </div>
             <div className="space-y-3">
               {domainControls.map((control) => (
                 <ControlItem

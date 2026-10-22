@@ -7,14 +7,14 @@ const OPTIONS: { value: ControlStatus; label: string }[] = [
   { value: 'not_started', label: 'Not started' },
   { value: 'in_progress', label: 'In progress' },
   { value: 'implemented', label: 'Implemented' },
-  { value: 'not_applicable', label: 'Not applicable' },
+  { value: 'not_applicable', label: 'N/A' },
 ]
 
-const STATUS_STYLES: Record<ControlStatus, string> = {
-  not_started: 'border-border text-text-secondary',
-  in_progress: 'border-status-moderate text-status-moderate',
-  implemented: 'border-status-ready text-status-ready',
-  not_applicable: 'border-text-muted text-text-muted',
+const ACTIVE_STYLES: Record<ControlStatus, string> = {
+  not_started: 'bg-white text-text-secondary shadow-sm',
+  in_progress: 'bg-status-moderate-bg text-status-moderate shadow-sm',
+  implemented: 'bg-status-ready-bg text-status-ready shadow-sm',
+  not_applicable: 'bg-surface-tertiary text-text-muted shadow-sm',
 }
 
 interface StatusSelectorProps {
@@ -22,21 +22,26 @@ interface StatusSelectorProps {
   onChange: (status: ControlStatus) => void
 }
 
+/** Segmented control for a control's status, styled as pill buttons in a track. */
 export default function StatusSelector({ value, onChange }: StatusSelectorProps) {
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value as ControlStatus)}
-      className={cn(
-        'h-9 rounded-input border bg-white px-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-teal/20',
-        STATUS_STYLES[value],
-      )}
-    >
-      {OPTIONS.map((opt) => (
-        <option key={opt.value} value={opt.value}>
-          {opt.label}
-        </option>
-      ))}
-    </select>
+    <div className="inline-flex items-center gap-0.5 rounded-pill border border-border bg-surface-secondary p-1">
+      {OPTIONS.map((opt) => {
+        const active = opt.value === value
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => onChange(opt.value)}
+            className={cn(
+              'rounded-pill px-2.5 py-1 text-xs font-medium transition-all',
+              active ? ACTIVE_STYLES[opt.value] : 'text-text-muted hover:text-text-secondary',
+            )}
+          >
+            {opt.label}
+          </button>
+        )
+      })}
+    </div>
   )
 }

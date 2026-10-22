@@ -10,3 +10,17 @@ body {
 body {
   color: #1A1A2E; /* text-primary */
 }
+
+* {
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: #E6F7F5;
+}
+
+@keyframes dash-grow {
+  from {
+    stroke-dashoffset: var(--dash-from, 283);
+  }
+}
