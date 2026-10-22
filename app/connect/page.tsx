@@ -52,7 +52,13 @@ function ConnectContent() {
     )
   }
 
-  const provider = providerDisplayName(tenant.integration.provider)
+  // Re-bind as its own const so TypeScript's narrowing (tenant is not
+  // undefined past the guard above) carries into the nested async
+  // function below — narrowing doesn't always survive across a separate
+  // function scope for a closed-over variable.
+  const activeTenant = tenant
+
+  const provider = providerDisplayName(activeTenant.integration.provider)
   const steps = SYNC_STEPS.map((s) => s.replace('{provider}', provider))
 
   async function handleAccept() {
@@ -63,7 +69,7 @@ function ConnectContent() {
       setStepIndex(i)
       await new Promise((resolve) => setTimeout(resolve, 350))
     }
-    await seedFromDemoTenant(tenant)
+    await seedFromDemoTenant(activeTenant)
     router.push('/dashboard')
   }
 
